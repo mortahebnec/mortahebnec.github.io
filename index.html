@@ -251,7 +251,7 @@
 
   function saveAnswers() {
     const jsonString = JSON.stringify(userAnswers, null, 2);
-    const filename = `user_answer_${userName}_${questionStart + 1}_${userAnswers.length}.json`;
+    const filename = `user_answer_${userName}_${questionStart + 1}_${currentQuestionIndex}.json`;
 
     const link = document.createElement('a');
     const blob = new Blob([jsonString], { type: 'application/json' });
