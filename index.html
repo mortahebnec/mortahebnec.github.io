@@ -36,19 +36,10 @@
       text-align: center;
       margin-top: 20px;
     }
-    .most-relevant {
-      border-color: green;
-    }
-    .least-relevant {
-      border-color: red;
-    }
-    .unsure-selected {
-      background-color: yellow;
-    }
     .button-selected {
       color: white;
     }
-    .input-container {
+    .input-container, .description-container {
       text-align: center;
       margin-top: 20px;
     }
@@ -58,6 +49,11 @@
       font-size: 16px;
       margin: 10px 0;
     }
+    .button-1 { background-color: yellow; } /* Unsure */
+    .button0 { background-color: red; } /* No relevance */
+    .button1 { background-color: lightpink; } /* Mildly relevant */
+    .button2 { background-color: green; } /* Highly relevant */
+    .button3 { background-color: blue; } /* Completely relevant */
   </style>
 </head>
 <body>
@@ -69,13 +65,18 @@
   <button onclick="startSurvey()">Start Survey</button>
 </div>
 
+<div id="description-container" class="description-container" style="display:none;">
+  <h2>Survey Instructions</h2>
+  <p>Please select the degree of relevancy between pairs of image and questions. If you are unsure about the choice, you can select the unsure button. Thank you very much, Matin.</p>
+  <button onclick="startQuestions()">Proceed to Questions</button>
+</div>
+
 <div id="question-container" class="question-container" style="display:none;">
   <h2 id="question">Question will appear here</h2>
   <div class="image-container" id="image-container">
     <!-- Images and buttons will be injected here -->
   </div>
   <div class="controls">
-    <button id="unsure-button" onclick="markUnsure()">Unsure</button>
     <button onclick="submitAnswer()">Next</button>
     <button onclick="saveAnswers()">Save</button>
   </div>
@@ -84,10 +85,7 @@
 <script>
   let data = []; // To hold the questions and images
   let currentQuestionIndex = 0;
-  let mostRelevantIndex = null;
-  let leastRelevantIndex = null;
-  let unsureSelected = false;
-  let userAnswers = [];
+  let userResponses = []; // Store responses for each image in the question
   let userName = '';
   let questionStart = 0;
 
@@ -111,6 +109,11 @@
 
     currentQuestionIndex = questionStart;
     document.getElementById('input-container').style.display = 'none';
+    document.getElementById('description-container').style.display = 'block';
+  }
+
+  function startQuestions() {
+    document.getElementById('description-container').style.display = 'none';
     document.getElementById('question-container').style.display = 'block';
     loadQuestion();
   }
@@ -121,6 +124,7 @@
     document.getElementById('question').innerText = `Question ${questionNumber}: ${question.question}`;
     const imageContainer = document.getElementById('image-container');
     imageContainer.innerHTML = '';
+    userResponses = new Array(question.images.length).fill(null); // Reset responses
 
     question.images.forEach((image, index) => {
       const imageItem = document.createElement('div');
@@ -130,115 +134,52 @@
       imgElement.src = image;
       imgElement.alt = `Image ${index + 1}`;
 
-      const mostButton = document.createElement('button');
-      mostButton.innerText = 'Most Relevant';
-      mostButton.onclick = () => selectMostRelevant(index, mostButton);
+      const buttonsContainer = document.createElement('div');
 
-      const leastButton = document.createElement('button');
-      leastButton.innerText = 'Least Relevant';
-      leastButton.onclick = () => selectLeastRelevant(index, leastButton);
+      const buttons = [
+        { label: 'Unsure', value: -1, class: 'button-1' },
+        { label: 'No relevance', value: 0, class: 'button0' },
+        { label: 'Mildly relevant', value: 1, class: 'button1' },
+        { label: 'Highly relevant', value: 2, class: 'button2' },
+        { label: 'Completely relevant', value: 3, class: 'button3' }
+      ];
+
+      buttons.forEach(button => {
+        const btn = document.createElement('button');
+        btn.innerText = button.label;
+        btn.className = button.class;
+        btn.onclick = () => selectRelevancy(index, button.value, btn);
+        buttonsContainer.appendChild(btn);
+      });
 
       imageItem.appendChild(imgElement);
-      imageItem.appendChild(mostButton);
-      imageItem.appendChild(leastButton);
-
+      imageItem.appendChild(buttonsContainer);
       imageContainer.appendChild(imageItem);
     });
-
-    // Reset selections
-    mostRelevantIndex = null;
-    leastRelevantIndex = null;
-    unsureSelected = false;
-    document.getElementById('unsure-button').classList.remove('unsure-selected');
   }
 
-  function selectMostRelevant(index) {
-    if (unsureSelected) {
-      markUnsure();
-    }
-    if (leastRelevantIndex === index) {
-      alert("You cannot select the same image as both most and least relevant.");
-      return;
-    }
-    mostRelevantIndex = index;
-    updateSelection();
-  }
+  function selectRelevancy(imageIndex, relevancyValue, button) {
+    // Ensure only one button is selected per image
+    const buttons = button.parentElement.querySelectorAll('button');
+    buttons.forEach(btn => btn.classList.remove('button-selected'));
+    button.classList.add('button-selected');
 
-  function selectLeastRelevant(index) {
-    if (unsureSelected) {
-      markUnsure();
-    }
-    if (mostRelevantIndex === index) {
-      alert("You cannot select the same image as both most and least relevant.");
-      return;
-    }
-    leastRelevantIndex = index;
-    updateSelection();
-  }
-
-  function markUnsure() {
-    unsureSelected = !unsureSelected;
-    mostRelevantIndex = null;
-    leastRelevantIndex = null;
-    updateSelection();
-  }
-
-  function updateSelection() {
-    const imageItems = document.querySelectorAll('.image-item');
-    imageItems.forEach((item, index) => {
-      const img = item.querySelector('img');
-      const mostButton = item.querySelector('button:first-of-type');
-      const leastButton = item.querySelector('button:last-of-type');
-
-      img.classList.remove('most-relevant', 'least-relevant');
-      mostButton.classList.remove('button-selected');
-      leastButton.classList.remove('button-selected');
-      mostButton.style.backgroundColor = '';
-      leastButton.style.backgroundColor = '';
-
-      if (unsureSelected) {
-        document.getElementById('unsure-button').classList.add('unsure-selected');
-      } else {
-        document.getElementById('unsure-button').classList.remove('unsure-selected');
-        if (index === mostRelevantIndex) {
-          img.classList.add('most-relevant');
-          mostButton.classList.add('button-selected');
-          mostButton.style.backgroundColor = 'green';
-        }
-        if (index === leastRelevantIndex) {
-          img.classList.add('least-relevant');
-          leastButton.classList.add('button-selected');
-          leastButton.style.backgroundColor = 'red';
-        }
-      }
-    });
+    userResponses[imageIndex] = relevancyValue;
   }
 
   function submitAnswer() {
-    let answer;
-    if (unsureSelected) {
-      answer = {
-        question: data[currentQuestionIndex].question,
-        mostRelevant: -1,
-        leastRelevant: -1
-      };
-    } else if (mostRelevantIndex !== null && leastRelevantIndex !== null) {
-      answer = {
-        question: data[currentQuestionIndex].question,
-        mostRelevant: mostRelevantIndex,
-        leastRelevant: leastRelevantIndex
-      };
-    } else {
-      alert("Please select the most and least relevant images, or choose 'Unsure'.");
+    if (userResponses.includes(null)) {
+      alert('Please select a relevancy for all images.');
       return;
     }
 
-    userAnswers.push(answer);
+    const response = {
+      question: data[currentQuestionIndex].question,
+      responses: userResponses
+    };
 
-    // Reset selections
-    mostRelevantIndex = null;
-    leastRelevantIndex = null;
-    unsureSelected = false;
+    userResponses.push(response);
+
     currentQuestionIndex++;
 
     if (currentQuestionIndex < data.length) {
@@ -250,7 +191,7 @@
   }
 
   function saveAnswers() {
-    const jsonString = JSON.stringify(userAnswers, null, 2);
+    const jsonString = JSON.stringify(userResponses, null, 2);
     const filename = `user_answer_${userName}_${questionStart + 1}_${currentQuestionIndex}.json`;
 
     const link = document.createElement('a');
