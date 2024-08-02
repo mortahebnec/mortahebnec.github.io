@@ -87,7 +87,8 @@
 <script>
   let data = []; // To hold the questions and images
   let currentQuestionIndex = 0;
-  let userResponses = []; // Store responses for each question
+  let currentResponses = []; // Store responses for the current question
+  let allResponses = []; // Store all responses
   let userName = '';
   let questionStart = 0;
 
@@ -126,7 +127,7 @@
     document.getElementById('question').innerText = `Question ${questionNumber}: ${question.question}`;
     const imageContainer = document.getElementById('image-container');
     imageContainer.innerHTML = '';
-    userResponses = new Array(question.images.length).fill(null); // Reset responses
+    currentResponses = new Array(question.images.length).fill(null); // Reset responses
 
     question.images.forEach((image, index) => {
       const imageItem = document.createElement('div');
@@ -139,11 +140,11 @@
       const buttonsContainer = document.createElement('div');
 
       const buttons = [
-        { label: 'Unsure', value: -1, class: 'button-1' },
-        { label: 'No relevance', value: 0, class: 'button0' },
-        { label: 'Mildly relevant', value: 1, class: 'button1' },
-        { label: 'Highly relevant', value: 2, class: 'button2' },
-        { label: 'Completely relevant', value: 3, class: 'button3' }
+        { label: 'Unsure', value: -1, class: 'button-1-selected' },
+        { label: 'No relevance', value: 0, class: 'button0-selected' },
+        { label: 'Mildly relevant', value: 1, class: 'button1-selected' },
+        { label: 'Highly relevant', value: 2, class: 'button2-selected' },
+        { label: 'Completely relevant', value: 3, class: 'button3-selected' }
       ];
 
       buttons.forEach(button => {
@@ -164,13 +165,13 @@
     // Ensure only one button is selected per image
     const buttons = button.parentElement.querySelectorAll('button');
     buttons.forEach(btn => btn.classList.remove('button-1-selected', 'button0-selected', 'button1-selected', 'button2-selected', 'button3-selected'));
-    button.classList.add(`button${relevancyValue}-selected`);
+    button.classList.add(button.className);
 
-    userResponses[imageIndex] = relevancyValue;
+    currentResponses[imageIndex] = relevancyValue;
   }
 
   function submitAnswer() {
-    if (userResponses.includes(null)) {
+    if (currentResponses.includes(null)) {
       alert('Please select a relevancy for all images.');
       return;
     }
@@ -178,10 +179,10 @@
     const response = {
       questionNumber: currentQuestionIndex + 1,
       question: data[currentQuestionIndex].question,
-      responses: userResponses
+      responses: currentResponses
     };
 
-    userResponses.push(response);
+    allResponses.push(response);
 
     currentQuestionIndex++;
 
@@ -194,7 +195,7 @@
   }
 
   function saveAnswers() {
-    const jsonString = JSON.stringify(userResponses, null, 2);
+    const jsonString = JSON.stringify(allResponses, null, 2);
     const filename = `user_answer_${userName}_${questionStart + 1}_${currentQuestionIndex}.json`;
 
     const link = document.createElement('a');
