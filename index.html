@@ -31,6 +31,8 @@
       padding: 10px 20px;
       font-size: 16px;
       cursor: pointer;
+      background-color: white; /* Default button color */
+      border: 1px solid gray;
     }
     .controls {
       text-align: center;
@@ -49,11 +51,11 @@
       font-size: 16px;
       margin: 10px 0;
     }
-    .button-1 { background-color: yellow; } /* Unsure */
-    .button0 { background-color: red; } /* No relevance */
-    .button1 { background-color: lightpink; } /* Mildly relevant */
-    .button2 { background-color: green; } /* Highly relevant */
-    .button3 { background-color: blue; } /* Completely relevant */
+    .button-1-selected { background-color: yellow; } /* Unsure */
+    .button0-selected { background-color: red; } /* No relevance */
+    .button1-selected { background-color: lightpink; } /* Mildly relevant */
+    .button2-selected { background-color: green; } /* Highly relevant */
+    .button3-selected { background-color: blue; } /* Completely relevant */
   </style>
 </head>
 <body>
@@ -85,7 +87,7 @@
 <script>
   let data = []; // To hold the questions and images
   let currentQuestionIndex = 0;
-  let userResponses = []; // Store responses for each image in the question
+  let userResponses = []; // Store responses for each question
   let userName = '';
   let questionStart = 0;
 
@@ -161,8 +163,8 @@
   function selectRelevancy(imageIndex, relevancyValue, button) {
     // Ensure only one button is selected per image
     const buttons = button.parentElement.querySelectorAll('button');
-    buttons.forEach(btn => btn.classList.remove('button-selected'));
-    button.classList.add('button-selected');
+    buttons.forEach(btn => btn.classList.remove('button-1-selected', 'button0-selected', 'button1-selected', 'button2-selected', 'button3-selected'));
+    button.classList.add(`button${relevancyValue}-selected`);
 
     userResponses[imageIndex] = relevancyValue;
   }
@@ -174,6 +176,7 @@
     }
 
     const response = {
+      questionNumber: currentQuestionIndex + 1,
       question: data[currentQuestionIndex].question,
       responses: userResponses
     };
