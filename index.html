@@ -31,7 +31,6 @@
       padding: 10px 20px;
       font-size: 16px;
       cursor: pointer;
-      background-color: white; /* Default button color */
       border: 1px solid gray;
     }
     .controls {
@@ -48,6 +47,7 @@
       font-size: 16px;
       margin: 10px 0;
     }
+    /* Selected button classes */
     .selected { color: white; }
     .button-1-selected { background-color: yellow; } /* Unsure */
     .button0-selected { background-color: red; } /* No relevance */
@@ -67,7 +67,7 @@
 
 <div id="description-container" class="description-container" style="display:none;">
   <h2>Survey Instructions</h2>
-  <p>Please select the degree of relevancy between pairs of image and questions. If you are unsure about the choice, you can select the unsure button. Thank you very much, Matin.</p>
+  <p>Please select the degree of relevancy between pairs of image and questions. If you are unsure about the choice, you can select the unsure button. Thank you very much, Matin Mortaheb.</p>
   <button onclick="startQuestions()">Proceed to Questions</button>
 </div>
 
@@ -148,8 +148,8 @@
       buttons.forEach(button => {
         const btn = document.createElement('button');
         btn.innerText = button.label;
+        btn.className = 'relevancy-button'; // General class for all buttons
         btn.dataset.value = button.value; // Store value in data attribute
-        btn.classList.add(button.class);
         btn.onclick = () => selectRelevancy(index, button.value, btn);
         buttonsContainer.appendChild(btn);
       });
@@ -162,15 +162,27 @@
 
   function selectRelevancy(imageIndex, relevancyValue, button) {
     // Deselect all buttons for this image
-    const buttons = button.parentElement.querySelectorAll('button');
+    const buttons = button.parentElement.querySelectorAll('.relevancy-button');
     buttons.forEach(btn => {
-      const classList = btn.classList;
-      classList.remove('button-1-selected', 'button0-selected', 'button1-selected', 'button2-selected', 'button3-selected');
+      btn.classList.remove('button-1-selected', 'button0-selected', 'button1-selected', 'button2-selected', 'button3-selected');
+      btn.style.backgroundColor = ''; // Reset background color
     });
 
-    // Select the clicked button
+    // Select the clicked button and change its color
     button.classList.add(`button${relevancyValue}-selected`);
+    button.style.backgroundColor = getButtonColor(relevancyValue);
     currentResponses[imageIndex] = relevancyValue;
+  }
+
+  function getButtonColor(value) {
+    switch (value) {
+      case -1: return 'yellow'; // Unsure
+      case 0: return 'red'; // No relevance
+      case 1: return 'lightpink'; // Mildly relevant
+      case 2: return 'green'; // Highly relevant
+      case 3: return 'blue'; // Completely relevant
+      default: return ''; // Default
+    }
   }
 
   function submitAnswer() {
