@@ -148,6 +148,7 @@
       buttons.forEach(button => {
         const btn = document.createElement('button');
         btn.innerText = button.label;
+        btn.dataset.value = button.value; // Store value in data attribute
         btn.classList.add(button.class);
         btn.onclick = () => selectRelevancy(index, button.value, btn);
         buttonsContainer.appendChild(btn);
@@ -160,11 +161,15 @@
   }
 
   function selectRelevancy(imageIndex, relevancyValue, button) {
-    // Ensure only one button is selected per image
+    // Deselect all buttons for this image
     const buttons = button.parentElement.querySelectorAll('button');
-    buttons.forEach(btn => btn.classList.remove('button-1-selected', 'button0-selected', 'button1-selected', 'button2-selected', 'button3-selected'));
-    button.classList.add(`button${relevancyValue}-selected`);
+    buttons.forEach(btn => {
+      const classList = btn.classList;
+      classList.remove('button-1-selected', 'button0-selected', 'button1-selected', 'button2-selected', 'button3-selected');
+    });
 
+    // Select the clicked button
+    button.classList.add(`button${relevancyValue}-selected`);
     currentResponses[imageIndex] = relevancyValue;
   }
 
