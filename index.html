@@ -26,6 +26,10 @@
       margin: auto;
       border: 2px solid transparent;
     }
+    .rs-score {
+      font-weight: bold;
+      margin-top: 5px;
+    }
     .image-item button, .controls button {
       margin: 5px;
       padding: 10px 20px;
@@ -67,7 +71,7 @@
 
 <div id="description-container" class="description-container" style="display:none;">
   <h2>Survey Instructions</h2>
-  <p>Please select the degree of relevancy between pairs of image and questions. If you are unsure about the choice, you can select the unsure button. Thank you very much, Matin Mortaheb.</p>
+  <p>Please select the degree of relevancy between pairs of image and questions. If you are unsure about the choice, you can select the unsure button. Thank you very much, Matin.</p>
   <button onclick="startQuestions()">Proceed to Questions</button>
 </div>
 
@@ -78,12 +82,14 @@
   </div>
   <div class="controls">
     <button onclick="submitAnswer()">Next</button>
+    <button onclick="showHelp()">Help</button>
     <button onclick="saveAnswers()">Save</button>
   </div>
 </div>
 
 <script>
   let data = []; // To hold the questions and images
+  let rsData = []; // To hold the relevance scores
   let currentQuestionIndex = 0;
   let currentResponses = []; // Store responses for the current question
   let allResponses = []; // Store all responses
@@ -94,8 +100,10 @@
     try {
       const response = await fetch('questions.json');
       data = await response.json();
+      const rsResponse = await fetch('question_RS_CLIP_BLIP.json');
+      rsData = await rsResponse.json();
     } catch (error) {
-      console.error('Error fetching questions:', error);
+      console.error('Error fetching questions or relevance scores:', error);
     }
   }
 
@@ -154,8 +162,14 @@
         buttonsContainer.appendChild(btn);
       });
 
+      const rsScore = document.createElement('div');
+      rsScore.className = 'rs-score';
+      rsScore.style.display = 'none'; // Initially hidden
+      rsScore.innerText = `RS: ${rsData[currentQuestionIndex].RS[index]}`;
+
       imageItem.appendChild(imgElement);
       imageItem.appendChild(buttonsContainer);
+      imageItem.appendChild(rsScore);
       imageContainer.appendChild(imageItem);
     });
   }
@@ -183,6 +197,14 @@
       case 3: return 'blue'; // Completely relevant
       default: return ''; // Default
     }
+  }
+
+  function showHelp() {
+    const imageItems = document.querySelectorAll('.image-item');
+    imageItems.forEach((item, index) => {
+      const rsScore = item.querySelector('.rs-score');
+      rsScore.style.display = 'block'; // Show the relevance score
+    });
   }
 
   function submitAnswer() {
@@ -214,18 +236,4 @@
     const filename = `user_answer_${userName}_${questionStart + 1}_${currentQuestionIndex}.json`;
 
     const link = document.createElement('a');
-    const blob = new Blob([jsonString], { type: 'application/json' });
-    link.href = URL.createObjectURL(blob);
-    link.download = filename;
-    link.click();
-
-    alert(`Answers saved as ${filename}`);
-  }
-
-  window.onload = async () => {
-    await fetchData(); // Load questions from the file
-  };
-</script>
-
-</body>
-</html>
+    const blob =
