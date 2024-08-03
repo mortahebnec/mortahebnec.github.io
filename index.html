@@ -236,4 +236,18 @@
     const filename = `user_answer_${userName}_${questionStart + 1}_${currentQuestionIndex}.json`;
 
     const link = document.createElement('a');
-    const blob =
+    const blob = new Blob([jsonString], { type: 'application/json' });
+    link.href = URL.createObjectURL(blob);
+    link.download = filename;
+    link.click();
+
+    alert(`Answers saved as ${filename}`);
+  }
+
+  window.onload = async () => {
+    await fetchData(); // Load questions from the file
+  };
+</script>
+
+</body>
+</html>
